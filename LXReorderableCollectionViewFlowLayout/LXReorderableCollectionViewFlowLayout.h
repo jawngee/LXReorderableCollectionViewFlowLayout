@@ -7,6 +7,11 @@
 
 #import <UIKit/UIKit.h>
 
+typedef enum : NSUInteger {
+    LXReorderableCollectionViewFinishAnimReturn,
+    LXReorderableCollectionViewFinishAnimDelete
+} LXReorderableCollectionViewFinishAnim;
+
 @interface LXReorderableCollectionViewFlowLayout : UICollectionViewFlowLayout <UIGestureRecognizerDelegate>
 
 @property (assign, nonatomic) CGFloat scrollingSpeed;
@@ -33,9 +38,34 @@
 @protocol LXReorderableCollectionViewDelegateFlowLayout <UICollectionViewDelegateFlowLayout>
 @optional
 
-- (void)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout willBeginDraggingItemAtIndexPath:(NSIndexPath *)indexPath;
-- (void)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout didBeginDraggingItemAtIndexPath:(NSIndexPath *)indexPath;
-- (void)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout willEndDraggingItemAtIndexPath:(NSIndexPath *)indexPath;
-- (void)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout didEndDraggingItemAtIndexPath:(NSIndexPath *)indexPath;
+- (void)collectionView:(UICollectionView *)collectionView
+                layout:(UICollectionViewLayout *)collectionViewLayout
+willBeginDraggingItemAtIndexPath:(NSIndexPath *)indexPath
+              location:(CGPoint)location;
+
+- (void)collectionView:(UICollectionView *)collectionView
+                layout:(UICollectionViewLayout *)collectionViewLayout
+didBeginDraggingItemAtIndexPath:(NSIndexPath *)indexPath
+              location:(CGPoint)location;
+
+- (void)collectionView:(UICollectionView *)collectionView
+                layout:(UICollectionViewLayout *)collectionViewLayout
+isDraggingItemAtIndexPath:(NSIndexPath *)indexPath
+              location:(CGPoint)location;
+
+- (void)collectionView:(UICollectionView *)collectionView
+                layout:(UICollectionViewLayout *)collectionViewLayout
+willEndDraggingItemAtIndexPath:(NSIndexPath *)indexPath
+              location:(CGPoint)location;
+
+- (LXReorderableCollectionViewFinishAnim)collectionView:(UICollectionView *)collectionView
+                                                 layout:(UICollectionViewLayout *)collectionViewLayout
+                  finishAnimationTypeForItemAtIndexPath:(NSIndexPath *)indexPath
+                                               location:(CGPoint)location;
+
+- (void)collectionView:(UICollectionView *)collectionView
+                layout:(UICollectionViewLayout *)collectionViewLayout
+didEndDraggingItemAtIndexPath:(NSIndexPath *)indexPath
+              location:(CGPoint)location;
 
 @end
