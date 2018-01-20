@@ -79,6 +79,7 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
 @implementation LXReorderableCollectionViewFlowLayout
 
 - (void)setDefaults {
+    _quickDragRect = CGRectZero;
     _scrollingSpeed = 300.0f;
     _scrollingTriggerEdgeInsets = UIEdgeInsetsMake(50.0f, 50.0f, 50.0f, 50.0f);
 }
@@ -88,15 +89,27 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
                                                                                 action:@selector(handleLongPressGesture:)];
     _longPressGestureRecognizer.delegate = self;
     
+    _shortPressGestureRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self
+                                                                    action:@selector(handleLongPressGesture:)];
+    _shortPressGestureRecognizer.minimumPressDuration = 0;
+    _shortPressGestureRecognizer.delegate = self;
+
+    [_longPressGestureRecognizer requireGestureRecognizerToFail:_shortPressGestureRecognizer];
+
     // Links the default long press gesture recognizer to the custom long press gesture recognizer we are creating now
     // by enforcing failure dependency so that they doesn't clash.
     for (UIGestureRecognizer *gestureRecognizer in self.collectionView.gestureRecognizers) {
         if ([gestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]]) {
             [gestureRecognizer requireGestureRecognizerToFail:_longPressGestureRecognizer];
         }
+
+        if ([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]]) {
+            [gestureRecognizer requireGestureRecognizerToFail:_shortPressGestureRecognizer];
+        }
     }
     
     [self.collectionView addGestureRecognizer:_longPressGestureRecognizer];
+    [self.collectionView addGestureRecognizer:_shortPressGestureRecognizer];
     
     _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                     action:@selector(handlePanGesture:)];
@@ -116,6 +129,15 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
         }
         _longPressGestureRecognizer.delegate = nil;
         _longPressGestureRecognizer = nil;
+    }
+    
+    if (_shortPressGestureRecognizer) {
+        UIView *view = _shortPressGestureRecognizer.view;
+        if (view) {
+            [view removeGestureRecognizer:_shortPressGestureRecognizer];
+        }
+        _shortPressGestureRecognizer.delegate = nil;
+        _shortPressGestureRecognizer = nil;
     }
     
     // Tear down pan gesture
@@ -294,8 +316,7 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
     self.collectionView.contentOffset = LXS_CGPointAdd(contentOffset, translation);
 }
 
-
-- (void)handleLongPressGesture:(UILongPressGestureRecognizer *)gestureRecognizer {
+- (void)handleLongPressGesture:(UIGestureRecognizer *)gestureRecognizer {
     CGPoint location = [gestureRecognizer locationInView:self.collectionView];
     
     switch(gestureRecognizer.state) {
@@ -512,8 +533,26 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
     if ([self.panGestureRecognizer isEqual:gestureRecognizer]) {
+        
         return (self.selectedItemIndexPath != nil);
     }
+    
+    if ([self.shortPressGestureRecognizer isEqual:gestureRecognizer]) {
+        if (!CGRectEqualToRect(_quickDragRect, CGRectZero)) {
+            CGPoint location = [gestureRecognizer locationInView:self.collectionView];
+            NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:location];
+            if (indexPath) {
+                UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
+                location = [cell convertPoint:location fromView:self.collectionView];
+                if (CGRectContainsPoint(_quickDragRect, location)) {
+                    return YES;
+                }
+            }
+        }
+        
+        return NO;
+    }
+    
     return YES;
 }
 
@@ -524,6 +563,14 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
     
     if ([self.panGestureRecognizer isEqual:gestureRecognizer]) {
         return [self.longPressGestureRecognizer isEqual:otherGestureRecognizer];
+    }
+    
+    if ([self.shortPressGestureRecognizer isEqual:gestureRecognizer]) {
+        return [self.panGestureRecognizer isEqual:otherGestureRecognizer];
+    }
+    
+    if ([self.panGestureRecognizer isEqual:gestureRecognizer]) {
+        return [self.shortPressGestureRecognizer isEqual:otherGestureRecognizer];
     }
     
     return NO;
