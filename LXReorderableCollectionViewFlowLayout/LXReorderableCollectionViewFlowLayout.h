@@ -20,6 +20,7 @@ typedef enum : NSUInteger {
 @property (strong, nonatomic, readonly) UILongPressGestureRecognizer *shortPressGestureRecognizer;
 @property (strong, nonatomic, readonly) UIPanGestureRecognizer *panGestureRecognizer;
 @property (assign, nonatomic) CGRect quickDragRect;
+@property (assign, nonatomic) BOOL quickDragEnabled;
 
 - (void)setUpGestureRecognizersOnCollectionView __attribute__((deprecated("Calls to setUpGestureRecognizersOnCollectionView method are not longer needed as setup are done automatically through KVO.")));
 

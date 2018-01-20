@@ -79,6 +79,7 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
 @implementation LXReorderableCollectionViewFlowLayout
 
 - (void)setDefaults {
+    _quickDragEnabled = NO;
     _quickDragRect = CGRectZero;
     _scrollingSpeed = 300.0f;
     _scrollingTriggerEdgeInsets = UIEdgeInsetsMake(50.0f, 50.0f, 50.0f, 50.0f);
@@ -538,7 +539,7 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
     }
     
     if ([self.shortPressGestureRecognizer isEqual:gestureRecognizer]) {
-        if (!CGRectEqualToRect(_quickDragRect, CGRectZero)) {
+        if (!CGRectEqualToRect(_quickDragRect, CGRectZero) && _quickDragEnabled) {
             CGPoint location = [gestureRecognizer locationInView:self.collectionView];
             NSIndexPath *indexPath = [self.collectionView indexPathForItemAtPoint:location];
             if (indexPath) {
